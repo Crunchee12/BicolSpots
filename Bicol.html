@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BicolVenture — Explore the Bicol Region</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0e14;--surface:#111622;--surface2:#1a2135;--border:#1e2a40;
+  --text:#e8edf5;--muted:#6b7a99;--accent:#e85d26;--accent2:#f4a261;
+  --green:#2ecc71;--radius:12px;--sidebar:260px;
+  --font-head:'Playfair Display',serif;--font-body:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.6;overflow-x:hidden;}
+/* SIDEBAR */
+#sidebar{position:fixed;top:0;left:0;height:100vh;width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transform:translateX(0);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+#sidebar.collapsed{transform:translateX(calc(-1 * var(--sidebar)));}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--border);}
+.sidebar-logo h2{font-family:var(--font-head);font-size:22px;color:var(--accent2);}
+.sidebar-logo span{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.sidebar-nav{flex:1;padding:16px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--muted);cursor:pointer;font-size:14px;font-weight:500;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.nav-item.active{color:var(--accent2);background:rgba(244,162,97,.07);border-left-color:var(--accent2);}
+.nav-icon{font-size:18px;width:20px;text-align:center;}
+.sidebar-theme{padding:16px 20px;border-top:1px solid var(--border);}
+.sidebar-theme p{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.theme-toggle{display:flex;background:var(--surface2);border-radius:8px;padding:3px;gap:2px;}
+.theme-btn{flex:1;padding:5px;border:none;background:none;color:var(--muted);font-size:12px;cursor:pointer;border-radius:6px;transition:all .2s;}
+.theme-btn.active{background:var(--accent);color:#fff;}
+.accent-row{display:flex;gap:8px;margin-top:10px;}
+.accent-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.2s;}
+.accent-dot.active{border-color:#fff;}
+/* TOPBAR */
+#topbar{position:fixed;top:0;left:var(--sidebar);right:0;height:60px;background:rgba(10,14,20,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;z-index:99;transition:left .3s cubic-bezier(.4,0,.2,1);}
+#topbar.expanded{left:0;}
+.menu-btn{background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;line-height:1;}
+.search-wrap{flex:1;max-width:420px;position:relative;}
+.search-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 16px 9px 40px;border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:.2s;}
+.search-wrap input:focus{border-color:var(--accent2);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.admin-badge{background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer;}
+/* MAIN */
+#main{margin-left:var(--sidebar);padding-top:60px;min-height:100vh;transition:margin-left .3s cubic-bezier(.4,0,.2,1);}
+#main.expanded{margin-left:0;}
+.page{display:none;padding:32px 28px;}
+.page.active{display:block;animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* HERO */
+.hero{position:relative;height:480px;border-radius:20px;overflow:hidden;margin-bottom:32px;display:flex;align-items:flex-end;}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(160deg,#0d3a6e 0%,#1a2135 40%,#2d1b00 100%);}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,transparent 60%);}
+.hero-volcano{position:absolute;right:0;bottom:0;width:60%;opacity:.25;}
+.hero-volcano svg{width:100%;height:auto;}
+.hero-content{position:relative;padding:40px;z-index:2;}
+.hero-tag{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;}
+.hero h1{font-family:var(--font-head);font-size:clamp(28px,4vw,52px);font-weight:700;line-height:1.1;margin-bottom:12px;}
+.hero p{color:rgba(232,237,245,.7);font-size:15px;max-width:460px;margin-bottom:24px;}
+.hero-search{display:flex;gap:10px;max-width:500px;}
+.hero-search input{flex:1;background:rgba(255,255,255,.1);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);color:#fff;padding:12px 18px;border-radius:10px;font-size:15px;font-family:var(--font-body);outline:none;}
+.hero-search input::placeholder{color:rgba(255,255,255,.5);}
+.hero-search select{background:rgba(255,255,255,.1);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;cursor:pointer;outline:none;}
+.hero-search select option{background:#1a2135;color:#e8edf5;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#d44e1e;transform:translateY(-1px);}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:var(--accent2);color:var(--accent2);}
+.btn-sm{padding:8px 16px;font-size:13px;}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:32px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;}
+.stat-num{font-family:var(--font-head);font-size:32px;color:var(--accent2);font-weight:700;}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+/* SECTION */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.section-head h2{font-family:var(--font-head);font-size:24px;}
+/* PROVINCE CARDS */
+.province-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-bottom:32px;}
+.province-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;}
+.province-card:hover{transform:translateY(-4px);border-color:var(--accent2);box-shadow:0 12px 32px rgba(0,0,0,.4);}
+.prov-thumb{height:140px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;}
+.prov-badge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);color:var(--accent2);font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;}
+.prov-info{padding:16px;}
+.prov-info h3{font-family:var(--font-head);font-size:18px;margin-bottom:4px;}
+.prov-info p{font-size:13px;color:var(--muted);line-height:1.5;}
+.prov-meta{display:flex;gap:12px;margin-top:10px;font-size:12px;color:var(--muted);}
+/* SPOT CARDS */
+.spot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;}
+.spot-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative;}
+.spot-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.5);}
+.spot-img{height:180px;display:flex;align-items:center;justify-content:center;font-size:72px;position:relative;overflow:hidden;}
+.spot-img-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 50%);}
+.spot-pin-btn{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);border:none;color:var(--muted);font-size:18px;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;z-index:2;}
+.spot-pin-btn.pinned{color:#e74c3c;}
+.spot-pin-btn:hover{background:rgba(0,0,0,.8);}
+.spot-info{padding:16px;}
+.spot-info h3{font-family:var(--font-head);font-size:17px;margin-bottom:6px;}
+.spot-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);}
+.tag{display:inline-block;background:rgba(244,162,97,.12);color:var(--accent2);font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;}
+/* DETAIL PAGE */
+.back-btn{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;cursor:pointer;margin-bottom:20px;transition:.2s;}
+.back-btn:hover{color:var(--accent2);}
+.detail-hero{position:relative;height:360px;border-radius:16px;overflow:hidden;margin-bottom:24px;display:flex;align-items:center;justify-content:center;font-size:120px;background:var(--surface2);}
+.detail-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8),transparent 60%);}
+.detail-hero-content{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:2;}
+.detail-hero-content h1{font-family:var(--font-head);font-size:clamp(22px,3vw,36px);margin-bottom:8px;}
+.gallery-strip{display:flex;gap:10px;margin-bottom:24px;overflow-x:auto;padding-bottom:8px;}
+.gallery-thumb{min-width:120px;height:90px;border-radius:10px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:36px;background:var(--surface2);border:2px solid transparent;transition:.2s;}
+.gallery-thumb:hover,.gallery-thumb.active{border-color:var(--accent2);}
+.detail-body{display:grid;grid-template-columns:1fr 320px;gap:24px;}
+@media(max-width:900px){.detail-body{grid-template-columns:1fr;}}
+.detail-main .section-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
+.section-card h3{font-family:var(--font-head);font-size:18px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.detail-side .info-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.info-row:last-child{border-bottom:none;}
+.info-row span:first-child{color:var(--muted);}
+.info-row span:last-child{font-weight:500;}
+.dist-box{background:linear-gradient(135deg,#1a2135,#0d1829);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;}
+.dist-num{font-family:var(--font-head);font-size:36px;color:var(--accent2);font-weight:700;}
+.dist-label{font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:16px;}
+.share-row{display:flex;gap:10px;flex-wrap:wrap;}
+.share-btn{flex:1;min-width:80px;padding:9px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text);font-size:13px;cursor:pointer;transition:.2s;text-align:center;}
+.share-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+/* REVIEWS */
+.review-item{padding:16px;background:var(--surface2);border-radius:10px;margin-bottom:12px;}
+.review-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.reviewer-name{font-weight:600;font-size:14px;}
+.stars{color:#f4a261;font-size:14px;}
+.review-text{font-size:14px;color:rgba(232,237,245,.8);line-height:1.6;}
+.review-form{background:var(--surface2);border-radius:10px;padding:20px;}
+.review-form h4{font-family:var(--font-head);font-size:16px;margin-bottom:16px;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.form-row input,.form-row textarea{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:.2s;}
+.form-row input:focus,.form-row textarea:focus{border-color:var(--accent2);}
+.form-row textarea{height:100px;resize:vertical;}
+.star-select{display:flex;gap:6px;font-size:24px;cursor:pointer;}
+.star-select span{transition:.2s;color:var(--muted);}
+.star-select span.active{color:#f4a261;}
+/* HOTELS */
+.hotel-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;display:flex;gap:0;}
+.hotel-card:hover{transform:translateY(-3px);border-color:var(--accent2);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+.hotel-img{min-width:140px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;background:var(--surface2);}
+.hotel-info{padding:16px;flex:1;}
+.hotel-info h3{font-family:var(--font-head);font-size:17px;margin-bottom:6px;}
+.hotel-meta{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:8px;}
+.hotel-price{font-size:18px;font-weight:700;color:var(--accent2);}
+.hotel-grid{display:flex;flex-direction:column;gap:14px;}
+/* MY PINS */
+.pins-empty{text-align:center;padding:80px 20px;color:var(--muted);}
+.pins-empty .empty-icon{font-size:64px;margin-bottom:16px;}
+/* ADMIN */
+.admin-login{max-width:420px;margin:80px auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;}
+.admin-login h2{font-family:var(--font-head);font-size:28px;margin-bottom:8px;}
+.admin-login p{color:var(--muted);font-size:14px;margin-bottom:28px;}
+.admin-tabs{display:flex;gap:4px;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:24px;}
+.admin-tab{flex:1;padding:9px;border:none;background:none;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;border-radius:8px;transition:.2s;}
+.admin-tab.active{background:var(--surface);color:var(--text);}
+.admin-table{width:100%;border-collapse:collapse;font-size:14px;}
+.admin-table th{text-align:left;padding:12px 16px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);}
+.admin-table td{padding:14px 16px;border-bottom:1px solid rgba(30,42,64,.5);vertical-align:middle;}
+.admin-table tr:hover td{background:rgba(255,255,255,.02);}
+.status-chip{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;}
+.status-active{background:rgba(46,204,113,.15);color:#2ecc71;}
+.status-pending{background:rgba(244,162,97,.15);color:var(--accent2);}
+/* MODAL */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:20px;}
+#modal-overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-family:var(--font-head);font-size:22px;margin-bottom:20px;}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.img-upload-area{border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:14px;}
+.img-upload-area:hover{border-color:var(--accent2);color:var(--accent2);}
+.uploaded-imgs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.uploaded-imgs .thumb{width:80px;height:60px;background:var(--surface2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;}
+.thumb-del{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;border:none;width:18px;height:18px;border-radius:50%;font-size:10px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px;}
+.toast-item{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:14px 20px;font-size:14px;font-weight:500;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slideIn .3s ease;}
+.toast-item.error{border-left-color:var(--accent);}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+/* LOCATION PROMPT */
+.location-prompt{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:24px;}
+.location-prompt .loc-icon{font-size:48px;margin-bottom:12px;}
+.location-prompt h3{font-family:var(--font-head);font-size:20px;margin-bottom:8px;}
+.location-prompt p{color:var(--muted);font-size:14px;margin-bottom:16px;}
+/* LIGHT THEME */
+body.light{--bg:#f0f2f7;--surface:#fff;--surface2:#f7f9fc;--border:#dde1ea;--text:#1a2035;--muted:#7a8299;}
+body.light #topbar{background:rgba(240,242,247,.9);}
+/* FILTER BAR */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.filter-chip{padding:7px 16px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--muted);font-size:13px;font-family:var(--font-body);cursor:pointer;transition:.2s;}
+.filter-chip.active,.filter-chip:hover{border-color:var(--accent2);color:var(--accent2);background:rgba(244,162,97,.07);}
+/* MAP PREVIEW */
+.map-preview{background:var(--surface2);border:1px solid var(--border);border-radius:10px;height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;margin-top:14px;cursor:pointer;transition:.2s;}
+.map-preview:hover{border-color:var(--accent2);}
+.map-preview .map-emoji{font-size:48px;}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar:260px;}
+  #sidebar{transform:translateX(calc(-1 * var(--sidebar)));}
+  #sidebar.open{transform:translateX(0);}
+  #topbar{left:0 !important;}
+  #main{margin-left:0 !important;}
+  .hero{height:360px;}
+  .detail-body{grid-template-columns:1fr;}
+  .hotel-card{flex-direction:column;}
+  .hotel-img{min-width:unset;width:100%;height:160px;}
+}
+.overlay{display:none;position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.5);}
+.overlay.show{display:block;}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <h2>🌋 BicolVenture</h2>
+    <span>Explore Bicol Region</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showPage('home')">
+      <span class="nav-icon">🏠</span> Home
+    </div>
+    <div class="nav-item" onclick="showPage('provinces')">
+      <span class="nav-icon">🗺️</span> Provinces
+    </div>
+    <div class="nav-item" onclick="showPage('hotels')">
+      <span class="nav-icon">🏨</span> Hotels
+    </div>
+    <div class="nav-item" onclick="showPage('pins')">
+      <span class="nav-icon">📌</span> My Pins
+    </div>
+    <div class="nav-item" onclick="showPage('settings')">
+      <span class="nav-icon">⚙️</span> Settings
+    </div>
+    <div class="nav-item" onclick="showPage('admin')">
+      <span class="nav-icon">🔐</span> Admin
+    </div>
+  </nav>
+  <div class="sidebar-theme">
+    <p>Theme</p>
+    <div class="theme-toggle">
+      <button class="theme-btn active" onclick="setTheme('dark')">🌙 Dark</button>
+      <button class="theme-btn" onclick="setTheme('light')">☀️ Light</button>
+    </div>
+    <div class="accent-row">
+      <div class="accent-dot active" style="background:#e85d26" onclick="setAccent('#e85d26','#f4a261')"></div>
+      <div class="accent-dot" style="background:#3498db" onclick="setAccent('#3498db','#74b9ff')"></div>
+      <div class="accent-dot" style="background:#2ecc71" onclick="setAccent('#2ecc71','#55efc4')"></div>
+      <div class="accent-dot" style="background:#9b59b6" onclick="setAccent('#9b59b6','#a29bfe')"></div>
+      <div class="accent-dot" style="background:#e74c3c" onclick="setAccent('#e74c3c','#fd79a8')"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="global-search" placeholder="Search provinces, spots, hotels…" oninput="globalSearch(this.value)"/>
+  </div>
+  <div class="topbar-right">
+    <span id="admin-badge" class="admin-badge" style="display:none">Admin Mode</span>
+  </div>
+</div>
+
+<!-- OVERLAY for mobile -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-volcano">
+        <svg viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="300,20 120,400 480,400" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <polygon points="300,60 160,400 440,400" fill="rgba(255,255,255,.04)"/>
+          <ellipse cx="300" cy="380" rx="200" ry="20" fill="rgba(255,255,255,.04)"/>
+          <path d="M280,20 Q300,10 320,20 Q310,40 300,50 Q290,40 280,20Z" fill="rgba(232,93,38,.3)"/>
+          <line x1="300" y1="20" x2="260" y2="0" stroke="rgba(232,93,38,.2)" stroke-width="2"/>
+          <line x1="300" y1="20" x2="340" y2="5" stroke="rgba(232,93,38,.2)" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="hero-content">
+        <div class="hero-tag">🌺 Bicol Region, Philippines</div>
+        <h1>Discover the<br/>Bicol Wonders</h1>
+        <p>From the majestic Mayon Volcano to the pristine beaches of Caramoan — explore the best of Bicol's 6 provinces.</p>
+        <div class="hero-search">
+          <input type="text" placeholder="Search a province or spot…" id="hero-search" oninput="heroSearch(this.value)"/>
+          <select id="hero-province" onchange="if(this.value)showProvince(this.value)">
+            <option value="">Browse Province</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="section-head">
+      <h2>Explore Provinces</h2>
+      <button class="btn btn-outline btn-sm" onclick="showPage('provinces')">View All →</button>
+    </div>
+    <div class="province-grid" id="home-provinces"></div>
+  </div>
+
+  <!-- PROVINCES PAGE -->
+  <div class="page" id="page-provinces">
+    <div class="section-head">
+      <h2>🗺️ All Provinces</h2>
+    </div>
+    <input type="text" style="width:100%;max-width:400px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;margin-bottom:20px;" placeholder="Search province…" oninput="filterProvinces(this.value)"/>
+    <div class="province-grid" id="all-provinces"></div>
+  </div>
+
+  <!-- PROVINCE DETAIL PAGE -->
+  <div class="page" id="page-province-detail">
+    <div class="back-btn" onclick="goBack()">← Back</div>
+    <div id="province-detail-content"></div>
+  </div>
+
+  <!-- SPOT DETAIL PAGE -->
+  <div class="page" id="page-spot-detail">
+    <div class="back-btn" onclick="goBack()">← Back</div>
+    <div id="spot-detail-content"></div>
+  </div>
+
+  <!-- HOTELS PAGE -->
+  <div class="page" id="page-hotels">
+    <div class="section-head">
+      <h2>🏨 Hotels in Bicol</h2>
+    </div>
+    <div class="location-prompt" id="hotel-location-prompt">
+      <div class="loc-icon">📍</div>
+      <h3>Enable Location Services</h3>
+      <p>Allow location access to see nearby hotels and distances.</p>
+      <button class="btn btn-primary" onclick="requestLocation()">📡 Enable Location</button>
+      <button class="btn btn-outline" style="margin-left:10px;" onclick="skipLocation()">Browse Without Location</button>
+    </div>
+    <div id="hotel-list-wrap" style="display:none;">
+      <div class="filter-bar" id="hotel-filter-bar"></div>
+      <div class="hotel-grid" id="hotel-grid"></div>
+    </div>
+  </div>
+
+  <!-- HOTEL DETAIL PAGE -->
+  <div class="page" id="page-hotel-detail">
+    <div class="back-btn" onclick="goBack()">← Back</div>
+    <div id="hotel-detail-content"></div>
+  </div>
+
+  <!-- MY PINS PAGE -->
+  <div class="page" id="page-pins">
+    <div class="section-head">
+      <h2>📌 My Pins</h2>
+    </div>
+    <div id="pins-content"></div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="page-settings">
+    <div class="section-head">
+      <h2>⚙️ Settings</h2>
+    </div>
+    <div style="max-width:500px;">
+      <div class="detail-main">
+        <div class="section-card">
+          <h3>Appearance</h3>
+          <div class="info-row">
+            <span>Theme</span>
+            <div class="theme-toggle" style="width:160px;">
+              <button class="theme-btn active" id="dark-btn" onclick="setTheme('dark')">🌙 Dark</button>
+              <button class="theme-btn" id="light-btn" onclick="setTheme('light')">☀️ Light</button>
+            </div>
+          </div>
+          <div class="info-row">
+            <span>Accent Color</span>
+            <div class="accent-row">
+              <div class="accent-dot" style="background:#e85d26" onclick="setAccent('#e85d26','#f4a261')"></div>
+              <div class="accent-dot" style="background:#3498db" onclick="setAccent('#3498db','#74b9ff')"></div>
+              <div class="accent-dot" style="background:#2ecc71" onclick="setAccent('#2ecc71','#55efc4')"></div>
+              <div class="accent-dot" style="background:#9b59b6" onclick="setAccent('#9b59b6','#a29bfe')"></div>
+              <div class="accent-dot" style="background:#e74c3c" onclick="setAccent('#e74c3c','#fd79a8')"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <h3>About</h3>
+          <div class="info-row"><span>Version</span><span>1.0.0</span></div>
+          <div class="info-row"><span>Region</span><span>Bicol Region, PH</span></div>
+          <div class="info-row"><span>Provinces</span><span>6</span></div>
+          <div class="info-row"><span>Tourist Spots</span><span>60</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div class="page" id="page-admin">
+    <div id="admin-login-wrap">
+      <div class="admin-login">
+        <h2>🔐 Admin Login</h2>
+        <p>Enter admin credentials to manage content.</p>
+        <div class="form-row">
+          <label>Username</label>
+          <input type="text" id="admin-user" placeholder="admin"/>
+        </div>
+        <div class="form-row">
+          <label>Password</label>
+          <input type="password" id="admin-pass" placeholder="••••••"/>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="adminLogin()">Login to Dashboard</button>
+      </div>
+    </div>
+    <div id="admin-dashboard" style="display:none;">
+      <div class="section-head">
+        <h2>🛠️ Admin Dashboard</h2>
+        <button class="btn btn-outline btn-sm" onclick="adminLogout()">Logout</button>
+      </div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchAdminTab('spots',this)">Tourist Spots</button>
+        <button class="admin-tab" onclick="switchAdminTab('hotels',this)">Hotels</button>
+        <button class="admin-tab" onclick="switchAdminTab('reviews',this)">Reviews</button>
+      </div>
+      <div id="admin-spots">
+        <div style="margin-bottom:14px;"><button class="btn btn-primary btn-sm" onclick="openEditSpotModal()">+ Add Spot</button></div>
+        <table class="admin-table" id="admin-spots-table">
+          <thead><tr><th>Spot</th><th>Province</th><th>Category</th><th>Actions</th></tr></thead>
+          <tbody id="admin-spots-body"></tbody>
+        </table>
+      </div>
+      <div id="admin-hotels" style="display:none;">
+        <div style="margin-bottom:14px;"><button class="btn btn-primary btn-sm" onclick="openEditHotelModal()">+ Add Hotel</button></div>
+        <table class="admin-table">
+          <thead><tr><th>Hotel</th><th>Province</th><th>Price/Night</th><th>Actions</th></tr></thead>
+          <tbody id="admin-hotels-body"></tbody>
+        </table>
+      </div>
+      <div id="admin-reviews" style="display:none;">
+        <table class="admin-table">
+          <thead><tr><th>Reviewer</th><th>Spot/Hotel</th><th>Rating</th><th>Comment</th><th>Action</th></tr></thead>
+          <tbody id="admin-reviews-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-title">Edit Spot</h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ======== DATA ========
+const PROVINCES = [
+  {id:'albay', name:'Albay', emoji:'🌋', tagline:'Land of the Perfect Cone', color:'#e85d26',
+   desc:'Home to the iconic Mayon Volcano, Albay offers a blend of natural wonders, colonial heritage, and adventure tourism.',
+   facts:{area:'2,553 km²', pop:'1.3M', capital:'Legazpi City', known:'Mayon Volcano'},
+   spots:[
+    {id:'mayon',name:'Mayon Volcano',emoji:'🌋',cat:'Nature',rating:4.9,desc:'The world\'s most perfectly shaped composite volcano standing at 2,463 meters above sea level. A UNESCO-listed natural wonder offering trekking, ATV rides, and panoramic views.',fee:'₱50 entrance',tips:'Best viewed at sunrise from Cagsawa Ruins.',address:'Albay, Bicol',images:['🌋','🏔️','🌄','🚵','🛤️']},
+    {id:'cagsawa',name:'Cagsawa Ruins',emoji:'⛪',cat:'Heritage',rating:4.7,desc:'Ruins of the 18th-century Cagsawa Church, buried by the 1814 Mayon eruption. The iconic bell tower rising from the lava serves as a haunting reminder of nature\'s power.',fee:'₱20',tips:'Visit early morning for the best Mayon backdrop.',address:'Camalig, Albay',images:['⛪','🏛️','🌋','📸','🌿']},
+    {id:'misibis',name:'Misibis Bay Resort',emoji:'🏖️',cat:'Beach',rating:4.8,desc:'A luxury island resort featuring pristine white-sand beach, turquoise waters, water sports, and a stunning view of Mayon Volcano from the ocean.',fee:'Day tour ₱500',tips:'Book island hopping packages in advance.',address:'Bacacay, Albay',images:['🏖️','🌊','⛵','🤿','🌴']},
+    {id:'hoyophoy',name:'Hoyop-Hoyopan Cave',emoji:'🕳️',cat:'Nature',rating:4.5,desc:'A fascinating limestone cave system with stalactites, stalagmites, and an underground river. The cave was used as a shelter during WWII.',fee:'₱150 with guide',tips:'Wear non-slip footwear; cave floor can be wet.',address:'Camalig, Albay',images:['🕳️','🪨','💧','🔦','🦇']},
+    {id:'sumlang',name:'Sumlang Lake',emoji:'🏞️',cat:'Nature',rating:4.6,desc:'A tranquil crater lake with floating bamboo cottages, paddle boats, and a breathtaking view of Mayon Volcano. Perfect for a peaceful day trip.',fee:'Free, cottages ₱200',tips:'Rent a paddle boat for the best Mayon view.',address:'Camalig, Albay',images:['🏞️','🌊','🚣','🌸','🌋']},
+    {id:'lignon',name:'Lignon Hill Nature Park',emoji:'🌿',cat:'Nature',rating:4.4,desc:'A nature park and adventure hub on top of a hill with zipline, rappelling, and a panoramic view of Legazpi City and Mayon Volcano.',fee:'₱50 entrance',tips:'Zipline tickets sell out fast on weekends.',address:'Legazpi City, Albay',images:['🌿','🪢','🏙️','🌋','🌄']},
+    {id:'daraga',name:'Daraga Church',emoji:'⛪',cat:'Heritage',rating:4.5,desc:'A baroque church built in 1773 on a hilltop, offering commanding views of Mayon Volcano. A significant cultural and historical landmark in Albay.',fee:'Free',tips:'Climb the hilltop for the best church-volcano shot.',address:'Daraga, Albay',images:['⛪','🌋','🏛️','🕰️','🌿']},
+    {id:'legazpi',name:'Legazpi City Boulevard',emoji:'🌅',cat:'Leisure',rating:4.3,desc:'A scenic waterfront promenade perfect for evening strolls with vendors, local delicacies, and a spectacular sunset view of Mayon Volcano over Manila Bay.',fee:'Free',tips:'Visit at sunset for the best photos.',address:'Legazpi City, Albay',images:['🌅','🌆','🚶','🍢','🌊']},
+    {id:'oas',name:'Oas Hot Springs',emoji:'♨️',cat:'Wellness',rating:4.2,desc:'Natural hot spring pools fed by volcanic thermal water, perfect for relaxation after a long day of exploring Albay\'s attractions.',fee:'₱100',tips:'Weekdays are less crowded.',address:'Oas, Albay',images:['♨️','🌊','🌿','💆','🏔️']},
+    {id:'bulusan-albay',name:'Bacacay Fish Sanctuary',emoji:'🐠',cat:'Marine',rating:4.4,desc:'A protected marine sanctuary with excellent snorkeling and diving, featuring vibrant coral reefs and diverse marine life just a boat ride from Misibis Bay.',fee:'₱200 with guide',tips:'Bring your own snorkel gear to save on rental.',address:'Bacacay, Albay',images:['🐠','🤿','🪸','🐟','🌊']},
+   ]},
+  {id:'cam_norte', name:'Camarines Norte', emoji:'🏄', tagline:'The Surfing Capital', color:'#0984e3',
+   desc:'Known for its excellent surf breaks, pristine beaches, and the historic Calaguas Island, Camarines Norte offers adventure and relaxation.',
+   facts:{area:'2,322 km²', pop:'583K', capital:'Daet', known:'Calaguas Island'},
+   spots:[
+    {id:'calaguas',name:'Calaguas Island',emoji:'🏝️',cat:'Beach',rating:4.9,desc:'Often called the "hidden paradise of the Philippines," Calaguas features powdery white sand beaches, crystal-clear turquoise waters, and pristine coral reefs — all without electricity for a true digital detox.',fee:'₱50 port fee',tips:'Bring all supplies; no shops on the island.',address:'Vinzons, Camarines Norte',images:['🏝️','🌊','⛵','🌴','🐚']},
+    {id:'apuao',name:'Apuao Grande Island',emoji:'🌴',cat:'Beach',rating:4.7,desc:'A secluded island with beautiful white sand beaches and excellent snorkeling spots, part of the Calaguas island group.',fee:'₱200 boat trip',tips:'Combine with Calaguas for a 2-day island trip.',address:'Mercedes, Camarines Norte',images:['🌴','🏖️','🤿','🌊','🐠']},
+    {id:'daet-surf',name:'Bagasbas Beach',emoji:'🏄',cat:'Beach',rating:4.5,desc:'The surfing capital of Bicol, Bagasbas offers consistent waves year-round, surf lessons for beginners, and a laid-back beach atmosphere.',fee:'Free, surf lessons ₱500',tips:'November–March is the best surfing season.',address:'Daet, Camarines Norte',images:['🏄','🌊','🏖️','🌅','🤙']},
+    {id:'mercedes',name:'Mercedes Marine Sanctuary',emoji:'🐢',cat:'Marine',rating:4.6,desc:'A protected marine area where you can snorkel with sea turtles and observe diverse marine ecosystems in their natural habitat.',fee:'₱150',tips:'Morning dives have the clearest visibility.',address:'Mercedes, Camarines Norte',images:['🐢','🤿','🌊','🪸','🐠']},
+    {id:'jose-panganiban',name:'Jose Panganiban Waterfalls',emoji:'💦',cat:'Nature',rating:4.3,desc:'A series of cascading waterfalls hidden in the lush forests of Jose Panganiban, perfect for a refreshing nature adventure.',fee:'₱50',tips:'Hire a local guide for the trekking trail.',address:'Jose Panganiban, Camarines Norte',images:['💦','🌿','🏃','🐦','🌲']},
+    {id:'paracale',name:'Paracale Gold Mines',emoji:'⛏️',cat:'Heritage',rating:4.0,desc:'One of the oldest gold mining communities in the Philippines. Visit small-scale gold panning operations and learn about the gold rush history of the region.',fee:'₱100 guided tour',tips:'Best to visit on weekdays when miners are active.',address:'Paracale, Camarines Norte',images:['⛏️','🪙','💛','🏚️','🌄']},
+    {id:'labo',name:'Labo Eco-Farm',emoji:'🌾',cat:'Nature',rating:4.2,desc:'A working farm and eco-tourism destination where visitors can experience farm life, pick fresh produce, and learn about sustainable agriculture.',fee:'₱80',tips:'Kids love the animal feeding activities.',address:'Labo, Camarines Norte',images:['🌾','🐓','🌽','🌿','🏡']},
+    {id:'cvcc',name:'CVCC Marine Park',emoji:'🪸',cat:'Marine',rating:4.4,desc:'A community-managed marine park with excellent snorkeling and diving opportunities, featuring healthy coral reefs and diverse fish species.',fee:'₱200',tips:'Join the coral planting program as a volunteer.',address:'Camarines Norte',images:['🪸','🐠','🤿','🌊','🐙']},
+    {id:'daet-city',name:'Daet Town Plaza & Monument',emoji:'🗿',cat:'Heritage',rating:4.1,desc:'The historic town center with the iconic Lapu-Lapu monument, colonial-era structures, and the lively local market that showcases the culture of Camarines Norte.',fee:'Free',tips:'Visit on Sunday morning for the local market.',address:'Daet, Camarines Norte',images:['🗿','🏛️','🌺','🛖','📿']},
+    {id:'cam-norte-waterfalls',name:'Mampurok Falls',emoji:'🌊',cat:'Nature',rating:4.5,desc:'A majestic multi-tiered waterfall surrounded by dense tropical forest, accessible via a thrilling jungle trek.',fee:'₱100 with guide',tips:'Pack light and wear waterproof footwear.',address:'Camarines Norte',images:['🌊','🌿','🏔️','🚶','💦']},
+   ]},
+  {id:'cam_sur', name:'Camarines Sur', emoji:'🏂', tagline:'The Heart of Bicol', color:'#6c5ce7',
+   desc:'The largest province in Bicol, known for CamSur Watersports Complex, the historic Naga City, and stunning natural attractions.',
+   facts:{area:'5,496 km²', pop:'2.1M', capital:'Pili', known:'CWC Watersports'},
+   spots:[
+    {id:'cwc',name:'CamSur Watersports Complex',emoji:'🏄',cat:'Sports',rating:4.8,desc:'World-class cable wakeboarding and watersports complex in Pili. Hosts international competitions and offers lessons for beginners. One of the best watersports facilities in Asia.',fee:'₱800 for 2hr cable session',tips:'Book online to avoid long queues.',address:'Pili, Camarines Sur',images:['🏄','🌊','🤸','🏆','⛵']},
+    {id:'caramoan',name:'Caramoan Peninsula',emoji:'🏖️',cat:'Beach',rating:4.9,desc:'A stunning collection of limestone cliffs, hidden lagoons, white sand beaches and crystal clear waters. Famous as the filming location for international Survivor editions.',fee:'₱300 island tour',tips:'Book an overnight stay to experience the magic at sunset and sunrise.',address:'Caramoan, Camarines Sur',images:['🏖️','🌊','⛵','🏝️','🌅']},
+    {id:'naga',name:'Naga City Cathedral',emoji:'⛪',cat:'Heritage',rating:4.6,desc:'The Metropolitan Cathedral of Naga, one of the oldest and most beautiful churches in Bicol. Home to the revered image of Our Lady of Peñafrancia, patroness of Bicol.',fee:'Free',tips:'Visit during Peñafrancia Festival in September.',address:'Naga City, Camarines Sur',images:['⛪','🕯️','🌸','🏛️','🙏']},
+    {id:'penafrancia',name:'Peñafrancia Shrine',emoji:'🕯️',cat:'Heritage',rating:4.7,desc:'The most sacred religious site in Bicol, dedicated to the Virgin of Peñafrancia. Draws millions of devotees annually for one of Asia\'s biggest fluvial processions.',fee:'Free',tips:'The annual Traslacion river procession in September is a must-witness.',address:'Naga City, Camarines Sur',images:['🕯️','⛪','🙏','🌊','🎉']},
+    {id:'lola-sayong',name:'Lola Sayong Eco-Surf Camp',emoji:'🏕️',cat:'Beach',rating:4.4,desc:'A community-based surf camp in a remote beach offering surfing lessons, camping, and an authentic Bicolano cultural experience.',fee:'₱500 package',tips:'3-day packages include food and lodging.',address:'San Jose, Camarines Sur',images:['🏕️','🏄','🌊','🔥','🌴']},
+    {id:'Mt-iriga',name:'Mt. Iriga (Asog)',emoji:'🏔️',cat:'Nature',rating:4.5,desc:'An inactive volcano and protected area with a crater lake, diverse flora and fauna, and excellent trekking trails through old-growth forest.',fee:'₱100 environmental fee',tips:'Start the trek at dawn to reach the summit by 9 AM.',address:'Iriga City, Camarines Sur',images:['🏔️','🌿','🦅','💧','🏕️']},
+    {id:'lake-buhi',name:'Lake Buhi',emoji:'🐟',cat:'Nature',rating:4.3,desc:'Home to the world\'s smallest commercially harvested fish — the sinarapan (tabios). The lake also offers scenic views, boat rides, and fresh seafood.',fee:'₱50 boat ride',tips:'Try the local sinarapan fritters at lakeside stalls.',address:'Buhi, Camarines Sur',images:['🐟','🏞️','⛵','🌄','🍢']},
+    {id:'baao-lake',name:'Baao Wetlands',emoji:'🦆',cat:'Nature',rating:4.2,desc:'A tranquil wetland ecosystem and bird sanctuary with over 50 bird species, bamboo cottages over water, and stunning sunset views.',fee:'₱50',tips:'Early morning is best for bird watching.',address:'Baao, Camarines Sur',images:['🦆','🌿','🏞️','🌅','🦅']},
+    {id:'tinambac',name:'Tinambac Zipline',emoji:'🪢',cat:'Adventure',rating:4.4,desc:'One of the longest ziplines in Bicol offering an adrenaline rush over lush green hills and scenic views of the Bicol River.',fee:'₱350',tips:'Weight limit: 100kg. Wear closed-toe shoes.',address:'Tinambac, Camarines Sur',images:['🪢','🌿','😱','🏔️','🎯']},
+    {id:'del-gallego',name:'Del Gallego Waterfalls',emoji:'💧',cat:'Nature',rating:4.3,desc:'A pristine multi-tier waterfall complex accessible through a scenic trek in the foothills of the Sierra Madre mountains.',fee:'₱100 with guide',tips:'Only accessible during dry season (March–May).',address:'Del Gallego, Camarines Sur',images:['💧','🌿','🏃','🌲','🦋']},
+   ]},
+  {id:'catanduanes', name:'Catanduanes', emoji:'🌊', tagline:'The Happy Island', color:'#00b894',
+   desc:'An island province known for stunning surf breaks, dramatic coastlines, volcanic landscapes, and its title as the "Land of the Howling Winds."',
+   facts:{area:'1,512 km²', pop:'260K', capital:'Virac', known:'Puraran Beach Surfing'},
+   spots:[
+    {id:'puraran',name:'Puraran Beach',emoji:'🏄',cat:'Beach',rating:4.9,desc:'Home to the legendary "Majestic" surf break — one of the best hollow waves in Asia. The remote, unspoiled beach attracts surfers from around the world seeking pristine barrels.',fee:'Free, surfing lessons ₱600',tips:'Best waves from August to December.',address:'Baras, Catanduanes',images:['🏄','🌊','🏖️','🌴','🌅']},
+    {id:'binurong',name:'Binurong Point',emoji:'🌋',cat:'Nature',rating:4.8,desc:'A dramatic rocky headland with sweeping views of the Pacific Ocean and lush rolling hills. Often called the "Batanes of Bicol" for its otherworldly landscape.',fee:'₱50',tips:'Sunset view from the point is absolutely breathtaking.',address:'Baras, Catanduanes',images:['🌋','🏔️','🌊','🌅','📸']},
+    {id:'nahulugan',name:'Nahulugan Falls',emoji:'💦',cat:'Nature',rating:4.6,desc:'A majestic 40-meter waterfall in the interior of Catanduanes, surrounded by lush rainforest and accessible via an adventurous jungle trek.',fee:'₱100 with guide',tips:'The trail is steep — hire a local guide.',address:'Virac, Catanduanes',images:['💦','🌿','🌲','🏃','🦜']},
+    {id:'bato-church',name:'Bato Church',emoji:'⛪',cat:'Heritage',rating:4.5,desc:'A 16th-century Augustinian church built from volcanic rock, one of the oldest churches in Bicol. The church survived numerous typhoons and is a National Cultural Treasure.',fee:'Free',tips:'The annual town fiesta in May features colorful street dancing.',address:'Bato, Catanduanes',images:['⛪','🏛️','🌿','📿','🕰️']},
+    {id:'twin-rock',name:'Twin Rock Beach Resort',emoji:'🌴',cat:'Beach',rating:4.4,desc:'A picturesque beach resort with two distinctive rock formations rising from the sea. Perfect for swimming, snorkeling, and cliff jumping.',fee:'₱100 entrance',tips:'The rock formations are stunning at low tide.',address:'Virac, Catanduanes',images:['🌴','🪨','🌊','🤿','🏖️']},
+    {id:'balacay',name:'Balacay Point',emoji:'🌅',cat:'Nature',rating:4.5,desc:'A scenic viewpoint offering panoramic views of the Pacific Ocean and neighboring islands. The rolling hills and dramatic cliffs make it perfect for photography.',fee:'Free',tips:'Bring binoculars for whale watching season (Oct–Dec).',address:'Catanduanes',images:['🌅','🏔️','🌊','📷','🐋']},
+    {id:'virac-market',name:'Virac Public Market',emoji:'🛒',cat:'Cultural',rating:4.2,desc:'Experience authentic Catanduanes culture at the bustling public market where you can find fresh seafood, local delicacies like tinabal and sinanlag, and handicrafts.',fee:'Free',tips:'Visit Saturday morning for the widest selection.',address:'Virac, Catanduanes',images:['🛒','🐟','🌶️','🧺','🍢']},
+    {id:'gigmoto',name:'Gigmoto Eco-Tourism',emoji:'🌿',cat:'Nature',rating:4.3,desc:'A municipality known for its pristine beaches, coral gardens, and waterfalls. The Gigmoto coastline offers some of the best snorkeling in Catanduanes.',fee:'₱200 eco-tour',tips:'The turtle sanctuary is open for guided visits.',address:'Gigmoto, Catanduanes',images:['🌿','🐢','🪸','🌊','⛵']},
+    {id:'marilima',name:'Lake Marilima',emoji:'🏞️',cat:'Nature',rating:4.1,desc:'A peaceful inland lake surrounded by mountains, perfect for kayaking and picnics. The lake is home to diverse bird species and freshwater fish.',fee:'₱50 boat ride',tips:'The lake is ideal for early morning kayaking.',address:'San Miguel, Catanduanes',images:['🏞️','🚣','🦅','🌄','🌿']},
+    {id:'buhatan',name:'Buhatan River',emoji:'🛶',cat:'Nature',rating:4.4,desc:'A scenic river perfect for mangrove tours by kayak or bancal boat. Spot fireflies in the evenings and diverse bird species along the riverbanks.',fee:'₱150 boat tour',tips:'Evening firefly tours run from 6–8 PM.',address:'Virac, Catanduanes',images:['🛶','🌿','✨','🦜','🌊']},
+   ]},
+  {id:'masbate', name:'Masbate', emoji:'🐂', tagline:'The Rodeo Capital', color:'#fdcb6e',
+   desc:'Famous for its annual rodeo festival, Masbate is an island province with pristine beaches, diving spots, and a unique cowboy culture.',
+   facts:{area:'4,047 km²', pop:'860K', capital:'Masbate City', known:'Rodeo Masbateño'},
+   spots:[
+    {id:'rodeo',name:'Rodeo Masbateño Festival',emoji:'🐂',cat:'Cultural',rating:4.8,desc:'The biggest rodeo event in Southeast Asia, held annually in April. Watch cowboys rope cattle, barrel racing, and bull riding in a spectacle that blends Filipino and Spanish cowboy culture.',fee:'₱100–500',tips:'Book accommodations 3 months in advance.',address:'Masbate City',images:['🐂','🤠','🎪','🏇','🌟']},
+    {id:'kalanay',name:'Kalanay Cave',emoji:'🕳️',cat:'Heritage',rating:4.7,desc:'An archaeologically significant cave containing burial jars and artifacts dating back to the Metal Age (500 BC). One of the most important prehistoric sites in the Philippines.',fee:'₱100 with guide',tips:'Photography inside the cave requires a permit.',address:'Milagros, Masbate',images:['🕳️','🏺','🔍','🪨','🌿']},
+    {id:'burias',name:'Burias Island Beaches',emoji:'🏝️',cat:'Beach',rating:4.9,desc:'A group of pristine islands with white sand beaches, crystal-clear waters, and thriving marine ecosystems rarely visited by tourists. The last frontier of Masbate.',fee:'₱500 boat charter',tips:'Camp overnight for the ultimate island experience.',address:'Cawayan, Masbate',images:['🏝️','🌊','🌴','⛵','⭐']},
+    {id:'ticao',name:'Ticao Island',emoji:'🦈',cat:'Marine',rating:4.8,desc:'World-renowned diving destination and the only place in the Philippines where you can reliably swim with whale sharks (butanding) and manta rays in their natural habitat.',fee:'₱1,500 dive package',tips:'Whale shark season is October–June.',address:'Monreal, Masbate',images:['🦈','🐠','🤿','🌊','🐋']},
+    {id:'masbate-lighthouse',name:'Masbate Lighthouse',emoji:'🗼',cat:'Heritage',rating:4.3,desc:'A historic 19th-century Spanish lighthouse at the tip of the Masbate peninsula, offering panoramic views of the sea and surrounding islands.',fee:'Free',tips:'The sunset view from the lighthouse is spectacular.',address:'Masbate City',images:['🗼','🌅','🌊','📷','⚓']},
+    {id:'asid-gulf',name:'Asid Gulf Marine Reserve',emoji:'🐠',cat:'Marine',rating:4.5,desc:'A protected gulf with excellent fishing, snorkeling, and diving. Home to dugongs, sea turtles, and diverse reef fish species.',fee:'₱200',tips:'Join a local fishermen\'s sunrise boat tour.',address:'Masbate',images:['🐠','🐢','🌊','⛵','🎣']},
+    {id:'batuan',name:'Batuan Heritage Village',emoji:'🏚️',cat:'Cultural',rating:4.2,desc:'A living heritage village preserving traditional Masbateño culture, crafts, and the unique Masbateño dialect. Watch local craftsmen weave abaca and make traditional tools.',fee:'₱50',tips:'Visit on fiesta days for cultural performances.',address:'Batuan, Masbate',images:['🏚️','🧶','🌾','🎭','🥁']},
+    {id:'cawayan',name:'Cawayan White Beach',emoji:'🏖️',cat:'Beach',rating:4.6,desc:'A stunning white sand beach with gentle waves perfect for swimming, and a beautiful offshore reef for snorkeling. One of Masbate\'s most accessible beaches.',fee:'₱50',tips:'Local restaurants serve fresh grilled seafood.',address:'Cawayan, Masbate',images:['🏖️','🌊','🤿','🦞','🌴']},
+    {id:'aroroy',name:'Aroroy Gold Mine',emoji:'⛏️',cat:'Heritage',rating:4.0,desc:'One of the largest gold mines in the Philippines. Take a guided tour to learn about the gold mining process and the history of Masbate\'s gold rush.',fee:'₱200 guided tour',tips:'Advance booking required for mine tours.',address:'Aroroy, Masbate',images:['⛏️','🪙','⚙️','🏭','🌿']},
+    {id:'milagros-falls',name:'Milagros Twin Falls',emoji:'💦',cat:'Nature',rating:4.4,desc:'Twin waterfalls cascading into a clear natural pool, surrounded by lush vegetation. A refreshing escape from the heat of Masbate.',fee:'₱80 with guide',tips:'The trail takes 45 minutes each way.',address:'Milagros, Masbate',images:['💦','🌿','🌲','😎','🏊']},
+   ]},
+  {id:'sorsogon', name:'Sorsogon', emoji:'🐋', tagline:'Gateway to Bulusan', color:'#00cec9',
+   desc:'The southernmost province of Luzon, famous for Donsol\'s whale sharks, Bulusan Volcano, and the pristine waters of Sorsogon Bay.',
+   facts:{area:'2,141 km²', pop:'828K', capital:'Sorsogon City', known:'Butanding (Whale Shark) Interaction'},
+   spots:[
+    {id:'donsol',name:'Donsol Whale Shark Watching',emoji:'🐋',cat:'Marine',rating:4.9,desc:'The Whale Shark Capital of the World. Donsol hosts the largest congregation of whale sharks (butanding) globally. Swim alongside these gentle giants — the world\'s largest fish — in their natural habitat. A once-in-a-lifetime experience.',fee:'₱2,500 interaction package',tips:'Season runs November to June. Book weeks in advance.',address:'Donsol, Sorsogon',images:['🐋','🤿','🌊','🐠','🌅']},
+    {id:'bulusan-volcano',name:'Bulusan Volcano Natural Park',emoji:'🌋',cat:'Nature',rating:4.8,desc:'An active volcano surrounded by pristine rainforest, crater lakes, and diverse wildlife. The national park features trekking trails, lake swimming, and some of the most spectacular natural scenery in Bicol.',fee:'₱100 entrance',tips:'Register with the DENR office before trekking.',address:'Bulusan, Sorsogon',images:['🌋','🏔️','💧','🌿','🦜']},
+    {id:'lake-bulusan',name:'Lake Bulusan',emoji:'🏞️',cat:'Nature',rating:4.7,desc:'A stunning crater lake inside Bulusan Volcano Natural Park. The emerald green waters are perfect for swimming and kayaking, surrounded by old-growth forest.',fee:'Included in park entrance',tips:'Morning visits have the calmest waters.',address:'Bulusan, Sorsogon',images:['🏞️','💚','🚣','🌿','🏔️']},
+    {id:'subic-bay-sorsogon',name:'Subic Beach Matnog',emoji:'🏝️',cat:'Beach',rating:4.8,desc:'Arguably the most beautiful beach in Sorsogon — a pristine white-sand beach with crystal-clear turquoise waters accessible only by boat. A true hidden paradise.',fee:'₱200 boat + ₱50 entrance',tips:'Combine with Juag Lagoon for a full island day trip.',address:'Matnog, Sorsogon',images:['🏝️','🌊','🌴','⛵','🐚']},
+    {id:'juag-lagoon',name:'Juag Lagoon Marine Sanctuary',emoji:'🦀',cat:'Marine',rating:4.6,desc:'A protected mangrove lagoon and marine sanctuary where you can hand-feed milkfish and observe diverse marine life in a natural tidal lagoon.',fee:'₱150 with boat guide',tips:'Kids love the fish feeding activity.',address:'Matnog, Sorsogon',images:['🦀','🐟','🌿','⛵','🌊']},
+    {id:'barcelona-church',name:'Barcelona Church Ruins',emoji:'🏛️',cat:'Heritage',rating:4.4,desc:'Ruins of a 17th-century Spanish colonial church, now a hauntingly beautiful heritage site surrounded by a well-maintained park. A perfect spot for photography.',fee:'Free',tips:'The grounds are beautiful in the late afternoon light.',address:'Barcelona, Sorsogon',images:['🏛️','🌿','📷','🌸','⛪']},
+    {id:'sorsogon-hot-spring',name:'Mainit Hot Spring',emoji:'♨️',cat:'Wellness',rating:4.5,desc:'A natural volcanic hot spring with pools of varying temperatures, set in a lush natural environment. Perfect for relaxation after whale shark watching or volcano trekking.',fee:'₱50–150 per pool',tips:'The hottest pools reach 42°C — start with cooler pools.',address:'Sorsogon City',images:['♨️','💆','🌿','🌊','🏔️']},
+    {id:'rizal-beach',name:'Rizal Beach',emoji:'🏄',cat:'Beach',rating:4.5,desc:'A popular surfing beach with consistent waves, golden sand, and a laid-back surfer vibe. The long stretch of beach is also perfect for sunset walks.',fee:'Free',tips:'Surfboard rental available for ₱300/hour.',address:'Gubat, Sorsogon',images:['🏄','🌊','🏖️','🌅','🤙']},
+    {id:'casiguran',name:'Casiguran Spring',emoji:'💧',cat:'Nature',rating:4.3,desc:'A natural freshwater spring with crystal-clear cold water perfect for swimming. The spring is surrounded by bamboo groves and tropical vegetation.',fee:'₱50',tips:'Bring a picnic — there are shaded areas.',address:'Casiguran, Sorsogon',images:['💧','🌿','🏊','🎋','🦋']},
+    {id:'prieto-diaz',name:'Prieto Diaz Coves',emoji:'🗻',cat:'Nature',rating:4.6,desc:'A series of hidden coves and sea caves with dramatic limestone formations, accessible only by boat. The emerald waters inside the caves are magical.',fee:'₱500 boat charter',tips:'Low tide allows entry into the largest sea cave.',address:'Prieto Diaz, Sorsogon',images:['🗻','⛵','💚','🌊','🪨']},
+   ]},
+];
+
+const HOTELS = [
+  {id:'h1',name:'Mayon Volcano Hotel',province:'albay',emoji:'🏨',price:3500,rating:4.5,stars:4,desc:'Luxury hotel with direct Mayon Volcano view from every room. Features a rooftop pool, restaurant, and spa.',amenities:['Pool','Spa','Restaurant','WiFi','Parking'],lat:13.26,lng:123.68,images:['🏨','🌋','🏊','🍽️','🛏️']},
+  {id:'h2',name:'Legazpi City Suites',province:'albay',emoji:'🏩',price:2200,rating:4.3,stars:3,desc:'Modern hotel in the heart of Legazpi City, steps from the waterfront boulevard.',amenities:['Restaurant','WiFi','Gym','Conference Room'],lat:13.14,lng:123.73,images:['🏩','🌆','🏋️','🛁','🌊']},
+  {id:'h3',name:'Calaguas Island Resort',province:'cam_norte',emoji:'🏝️',price:1800,rating:4.7,stars:3,desc:'Eco-resort with beachfront cottages on the edge of the pristine Calaguas Island.',amenities:['Beach Access','Snorkeling Gear','Meals Included','Generator Power'],lat:14.40,lng:122.96,images:['🏝️','🌊','🛖','🐠','🌴']},
+  {id:'h4',name:'CamSur Watersports Hotel',province:'cam_sur',emoji:'🏄',price:2800,rating:4.6,stars:3,desc:'Official hotel of CWC. Wake up steps from the cable wakeboarding course.',amenities:['Pool','Wakeboarding Access','Restaurant','Equipment Rental'],lat:13.58,lng:123.26,images:['🏄','🌊','🏊','🍹','🏆']},
+  {id:'h5',name:'Caramoan Paradise Resort',province:'cam_sur',emoji:'🌴',price:3200,rating:4.8,stars:4,desc:'Secluded island resort in the heart of Caramoan. Accessible by boat, surrounded by limestone karsts.',amenities:['Beach Access','Island Hopping','Dive Center','Restaurant'],lat:13.76,lng:123.86,images:['🌴','🏖️','⛵','🤿','🌅']},
+  {id:'h6',name:'Puraran Beach Hotel',province:'catanduanes',emoji:'🌊',price:1500,rating:4.4,stars:2,desc:'Simple but cozy hotel right on Puraran\'s famous surf break. Perfect for surfers.',amenities:['Surf Board Rental','Beach Access','Restaurant','Surf School'],lat:13.66,lng:124.22,images:['🌊','🏄','🏖️','🎸','🌅']},
+  {id:'h7',name:'Donsol Bay View Inn',province:'sorsogon',emoji:'🐋',price:2000,rating:4.5,stars:3,desc:'The best-positioned hotel for whale shark watching. Includes free transfers to the BVio.',amenities:['Whale Shark Tour Package','Restaurant','WiFi','Beach Access'],lat:12.91,lng:123.59,images:['🐋','🌊','🏨','🌅','🤿']},
+  {id:'h8',name:'Bulusan Lakeside Lodge',province:'sorsogon',emoji:'🏔️',price:1800,rating:4.6,stars:3,desc:'Eco-lodge on the edge of Lake Bulusan inside the national park. Surrounded by rainforest.',amenities:['Kayak Rental','Trekking Guides','Organic Restaurant','Nature Tours'],lat:12.77,lng:124.12,images:['🏔️','🏞️','🚣','🌿','🍃']},
+  {id:'h9',name:'Masbate Rodeo Inn',province:'masbate',emoji:'🤠',price:1600,rating:4.2,stars:2,desc:'A charming ranch-themed hotel in the heart of Masbate City, perfect for the Rodeo Festival.',amenities:['Restaurant','WiFi','Event Hall','Parking'],lat:12.37,lng:123.62,images:['🤠','🐂','🏨','🎉','🌟']},
+  {id:'h10',name:'Ticao Island Dive Resort',province:'masbate',emoji:'🤿',price:4500,rating:4.9,stars:4,desc:'Premium dive resort on Ticao Island, world-renowned for manta rays and whale sharks.',amenities:['Dive Center','Manta Ray Tours','Restaurant','Equipment','WiFi'],lat:12.59,lng:123.70,images:['🤿','🐋','🪸','🏝️','🌊']},
+];
+
+// ======== STATE ========
+let currentPage='home', prevPage='home';
+let currentProvince=null, currentSpot=null, currentHotel=null;
+let pins = JSON.parse(localStorage.getItem('bicolPins')||'[]');
+let reviews = JSON.parse(localStorage.getItem('bicolReviews')||'{}');
+let isAdmin=false, userLocation=null;
+let currentTheme='dark';
+let selectedRating=0;
+
+// ======== INIT ========
+function init(){
+  renderHomeProvinces();
+  renderAllProvinces();
+  fillProvinceDropdown();
+  renderStats();
+  renderHotelFilters();
+  loadAdminTable();
+  loadAdminHotels();
+  loadAdminReviews();
+}
+
+function fillProvinceDropdown(){
+  const sel=document.getElementById('hero-province');
+  PROVINCES.forEach(p=>{
+    const o=document.createElement('option');
+    o.value=p.id; o.textContent=`${p.emoji} ${p.name}`;
+    sel.appendChild(o);
+  });
+}
+
+function renderStats(){
+  const el=document.getElementById('stats-row');
+  const totalSpots=PROVINCES.reduce((a,p)=>a+p.spots.length,0);
+  el.innerHTML=`
+    <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Provinces</div></div>
+    <div class="stat-card"><div class="stat-num">${totalSpots}</div><div class="stat-label">Tourist Spots</div></div>
+    <div class="stat-card"><div class="stat-num">${HOTELS.length}</div><div class="stat-label">Hotels</div></div>
+    <div class="stat-card"><div class="stat-num">${pins.length}</div><div class="stat-label">Your Pins</div></div>
+  `;
+}
+
+// ======== NAVIGATION ========
+function showPage(page){
+  prevPage=currentPage; currentPage=page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const map={home:0,provinces:1,hotels:2,pins:3,settings:4,admin:5};
+  const items=document.querySelectorAll('.nav-item');
+  if(map[page]!==undefined) items[map[page]].classList.add('active');
+  if(page==='pins') renderPins();
+  if(window.innerWidth<=768) closeSidebar();
+  window.scrollTo(0,0);
+}
+
+function showProvince(provId){
+  currentProvince=PROVINCES.find(p=>p.id===provId);
+  if(!currentProvince) return;
+  prevPage=currentPage; currentPage='province-detail';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-province-detail').classList.add('active');
+  document.getElementById('province-detail-content').innerHTML=renderProvinceDetail(currentProvince);
+  window.scrollTo(0,0);
+}
+
+function showSpot(provId, spotId){
+  currentProvince=PROVINCES.find(p=>p.id===provId);
+  currentSpot=currentProvince?.spots.find(s=>s.id===spotId);
+  if(!currentSpot) return;
+  prevPage=currentPage; currentPage='spot-detail';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-spot-detail').classList.add('active');
+  document.getElementById('spot-detail-content').innerHTML=renderSpotDetail(currentSpot,currentProvince);
+  selectedRating=0;
+  window.scrollTo(0,0);
+}
+
+function showHotel(hotelId){
+  currentHotel=HOTELS.find(h=>h.id===hotelId);
+  if(!currentHotel) return;
+  prevPage=currentPage; currentPage='hotel-detail';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-hotel-detail').classList.add('active');
+  document.getElementById('hotel-detail-content').innerHTML=renderHotelDetail(currentHotel);
+  window.scrollTo(0,0);
+}
+
+function goBack(){
+  showPage(prevPage==='province-detail'||prevPage==='spot-detail'?'home':prevPage);
+}
+
+// ======== RENDER PROVINCES ========
+function renderHomeProvinces(){
+  const el=document.getElementById('home-provinces');
+  el.innerHTML=PROVINCES.map(renderProvinceCard).join('');
+}
+
+function renderAllProvinces(){
+  const el=document.getElementById('all-provinces');
+  el.innerHTML=PROVINCES.map(renderProvinceCard).join('');
+}
+
+function renderProvinceCard(p){
+  return `<div class="province-card" onclick="showProvince('${p.id}')">
+    <div class="prov-thumb" style="background:linear-gradient(135deg,${p.color}22,${p.color}44)">
+      <span style="font-size:64px">${p.emoji}</span>
+      <span class="prov-badge">${p.spots.length} spots</span>
+    </div>
+    <div class="prov-info">
+      <h3>${p.name}</h3>
+      <p>${p.tagline}</p>
+      <div class="prov-meta">
+        <span>👥 ${p.facts.pop}</span>
+        <span>🏛️ ${p.facts.capital}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function filterProvinces(q){
+  const el=document.getElementById('all-provinces');
+  const filtered=q?PROVINCES.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())||p.tagline.toLowerCase().includes(q.toLowerCase())):PROVINCES;
+  el.innerHTML=filtered.map(renderProvinceCard).join('');
+}
+
+// ======== RENDER PROVINCE DETAIL ========
+function renderProvinceDetail(p){
+  const spotsHtml=p.spots.map(s=>renderSpotCard(s,p.id)).join('');
+  return `
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:24px;flex-wrap:wrap;">
+      <div style="font-size:64px">${p.emoji}</div>
+      <div>
+        <div class="hero-tag" style="background:${p.color}">${p.tagline}</div>
+        <h1 style="font-family:var(--font-head);font-size:clamp(24px,3vw,40px);margin-top:8px;">${p.name}</h1>
+        <p style="color:var(--muted);max-width:600px;margin-top:8px;">${p.desc}</p>
+      </div>
+    </div>
+    <div class="stats-row" style="margin-bottom:24px;">
+      <div class="stat-card"><div class="stat-num" style="font-size:20px;">${p.facts.area}</div><div class="stat-label">Area</div></div>
+      <div class="stat-card"><div class="stat-num" style="font-size:20px;">${p.facts.pop}</div><div class="stat-label">Population</div></div>
+      <div class="stat-card"><div class="stat-num" style="font-size:20px;">${p.facts.capital}</div><div class="stat-label">Capital</div></div>
+      <div class="stat-card"><div class="stat-num" style="font-size:20px;">⭐</div><div class="stat-label">${p.facts.known}</div></div>
+    </div>
+    <div class="section-head"><h2>Top ${p.spots.length} Tourist Spots</h2></div>
+    <div class="spot-grid">${spotsHtml}</div>`;
+}
+
+// ======== RENDER SPOT CARD ========
+function renderSpotCard(s,provId){
+  const isPinned=pins.includes(s.id);
+  return `<div class="spot-card">
+    <div class="spot-img" style="background:linear-gradient(135deg,#1a2135,#0d1829);cursor:pointer;" onclick="showSpot('${provId}','${s.id}')">
+      <span style="font-size:72px;position:relative;z-index:1">${s.emoji}</span>
+      <div class="spot-img-overlay"></div>
+    </div>
+    <button class="spot-pin-btn ${isPinned?'pinned':''}" onclick="togglePin('${s.id}',this)" title="${isPinned?'Unpin':'Pin this spot'}">
+      ${isPinned?'❤️':'🤍'}
+    </button>
+    <div class="spot-info" onclick="showSpot('${provId}','${s.id}')" style="cursor:pointer">
+      <h3>${s.name}</h3>
+      <div class="spot-meta">
+        <span class="tag">${s.cat}</span>
+        <span>⭐ ${s.rating}</span>
+        <span style="font-size:11px;color:var(--muted)">${s.fee}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ======== RENDER SPOT DETAIL ========
+function renderSpotDetail(s,p){
+  const isPinned=pins.includes(s.id);
+  const spotReviews=reviews[s.id]||[];
+  const avgRating=spotReviews.length?Math.round(spotReviews.reduce((a,r)=>a+r.rating,0)/spotReviews.length*10)/10:s.rating;
+  const galleryImgs=s.images.map((img,i)=>`<div class="gallery-thumb ${i===0?'active':''}" onclick="switchGallery(this,'${img}')">${img}</div>`).join('');
+  const reviewsHtml=spotReviews.length?spotReviews.slice().reverse().map(r=>`
+    <div class="review-item">
+      <div class="review-header">
+        <span class="reviewer-name">${r.name}</span>
+        <span class="stars">${'⭐'.repeat(r.rating)}</span>
+      </div>
+      <p class="review-text">${r.comment}</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px;">${r.date}</p>
+    </div>`).join(''):'<p style="color:var(--muted);font-size:14px;">No reviews yet. Be the first!</p>';
+  return `
+    <div class="detail-hero" id="main-img">
+      <span style="font-size:120px;position:relative;z-index:1">${s.images[0]}</span>
+      <div class="detail-hero-overlay"></div>
+      <div class="detail-hero-content">
+        <span class="tag">${s.cat}</span>
+        <h1>${s.name}</h1>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <span>⭐ ${avgRating}</span>
+          <span style="color:var(--muted);">📍 ${s.address}</span>
+          <span style="color:var(--muted);">${s.fee}</span>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-strip">${galleryImgs}</div>
+    <div class="detail-body">
+      <div class="detail-main">
+        <div class="section-card">
+          <h3>About this Spot</h3>
+          <p style="font-size:15px;line-height:1.8;color:rgba(232,237,245,.85);">${s.desc}</p>
+          <div style="margin-top:16px;padding:14px;background:var(--surface2);border-radius:8px;">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Insider Tip</p>
+            <p style="font-size:14px;">${s.tips}</p>
+          </div>
+        </div>
+        <div class="section-card">
+          <h3>Reviews (${spotReviews.length})</h3>
+          ${reviewsHtml}
+          <div class="review-form" style="margin-top:16px;">
+            <h4>Leave a Review</h4>
+            <div class="form-row">
+              <label>Your Name</label>
+              <input type="text" id="rev-name" placeholder="Enter your name"/>
+            </div>
+            <div class="form-row">
+              <label>Rating</label>
+              <div class="star-select" id="star-select">
+                <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span>
+                <span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span><span onclick="setRating(5)">★</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Comment</label>
+              <textarea id="rev-comment" placeholder="Share your experience…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="submitReview('${s.id}')">Submit Review</button>
+          </div>
+        </div>
+      </div>
+      <div class="detail-side">
+        <div class="dist-box">
+          <div style="font-size:28px;margin-bottom:8px;">📍</div>
+          <div class="dist-num" id="dist-value">--</div>
+          <div class="dist-label" id="dist-label">Enable location to see distance</div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px;" onclick="calcDistance(${s.lat||13.26},${s.lng||123.68},'${s.name}')">📡 Calculate Distance</button>
+          <div id="route-btn-wrap"></div>
+        </div>
+        <div class="info-box" style="margin-top:16px;">
+          <div class="info-row"><span>Category</span><span class="tag">${s.cat}</span></div>
+          <div class="info-row"><span>Entrance Fee</span><span>${s.fee}</span></div>
+          <div class="info-row"><span>Province</span><span>${p?.name||''}</span></div>
+          <div class="info-row"><span>Rating</span><span>⭐ ${avgRating}</span></div>
+        </div>
+        <div class="info-box">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Share this Spot</p>
+          <div class="share-row">
+            <button class="share-btn" onclick="shareSpot('facebook','${s.name}')">📘 Facebook</button>
+            <button class="share-btn" onclick="shareSpot('twitter','${s.name}')">🐦 Twitter</button>
+            <button class="share-btn" onclick="shareSpot('copy','${s.name}')">🔗 Copy</button>
+          </div>
+        </div>
+        <button class="btn ${isPinned?'btn-primary':'btn-outline'}" style="width:100%;justify-content:center;" id="pin-detail-btn" onclick="togglePinDetail('${s.id}')">
+          ${isPinned?'❤️ Pinned':'🤍 Pin this Spot'}
+        </button>
+        ${isAdmin?`<button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:10px;border-color:var(--accent2);color:var(--accent2);" onclick="openEditSpotModal('${p?.id}','${s.id}')">✏️ Edit Spot (Admin)</button>`:''}
+      </div>
+    </div>`;
+}
+
+// ======== GALLERY ========
+function switchGallery(el,img){
+  document.querySelectorAll('.gallery-thumb').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const main=document.getElementById('main-img');
+  if(main) main.querySelector('span').textContent=img;
+}
+
+// ======== PIN ========
+function togglePin(spotId, btn){
+  event.stopPropagation();
+  if(pins.includes(spotId)){
+    pins=pins.filter(p=>p!==spotId);
+    btn.textContent='🤍'; btn.classList.remove('pinned');
+    showToast('Spot unpinned');
+  } else {
+    pins.push(spotId);
+    btn.textContent='❤️'; btn.classList.add('pinned');
+    showToast('Spot pinned! ❤️');
+  }
+  localStorage.setItem('bicolPins',JSON.stringify(pins));
+  renderStats();
+}
+
+function togglePinDetail(spotId){
+  const btn=document.getElementById('pin-detail-btn');
+  if(pins.includes(spotId)){
+    pins=pins.filter(p=>p!==spotId);
+    btn.textContent='🤍 Pin this Spot'; btn.className='btn btn-outline'; btn.style='width:100%;justify-content:center;';
+    showToast('Spot unpinned');
+  } else {
+    pins.push(spotId);
+    btn.textContent='❤️ Pinned'; btn.className='btn btn-primary'; btn.style='width:100%;justify-content:center;';
+    showToast('Spot pinned! ❤️');
+  }
+  localStorage.setItem('bicolPins',JSON.stringify(pins));
+  renderStats();
+}
+
+function renderPins(){
+  const el=document.getElementById('pins-content');
+  if(!pins.length){
+    el.innerHTML=`<div class="pins-empty"><div class="empty-icon">📌</div><h3>No pins yet</h3><p style="color:var(--muted);margin-top:8px;">Pin spots you love to save them here.</p><button class="btn btn-primary" style="margin-top:16px;" onclick="showPage('provinces')">Browse Spots</button></div>`;
+    return;
+  }
+  const pinned=[];
+  PROVINCES.forEach(p=>p.spots.forEach(s=>{if(pins.includes(s.id))pinned.push({s,pId:p.id});}));
+  el.innerHTML=`<div class="spot-grid">${pinned.map(({s,pId})=>renderSpotCard(s,pId)).join('')}</div>`;
+}
+
+// ======== REVIEWS ========
+function setRating(n){
+  selectedRating=n;
+  document.querySelectorAll('#star-select span').forEach((s,i)=>{
+    s.classList.toggle('active',i<n);
+  });
+}
+
+function submitReview(spotId){
+  const name=document.getElementById('rev-name')?.value.trim();
+  const comment=document.getElementById('rev-comment')?.value.trim();
+  if(!name||!comment||!selectedRating){showToast('Please fill all fields and select a rating.','error');return;}
+  if(!reviews[spotId]) reviews[spotId]=[];
+  reviews[spotId].push({name,rating:selectedRating,comment,date:new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'})});
+  localStorage.setItem('bicolReviews',JSON.stringify(reviews));
+  showToast('Review submitted! Thank you 🎉');
+  showSpot(currentProvince?.id,spotId);
+}
+
+// ======== DISTANCE ========
+function calcDistance(targetLat,targetLng,name){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const d=haversine(pos.coords.latitude,pos.coords.longitude,targetLat,targetLng);
+      document.getElementById('dist-value').textContent=d.toFixed(1)+' km';
+      document.getElementById('dist-label').textContent=`from your location to ${name}`;
+      document.getElementById('route-btn-wrap').innerHTML=`<a href="https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;">🗺️ View Route on Maps</a>`;
+    },()=>showToast('Location access denied.','error'));
+  } else showToast('Geolocation not supported.','error');
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ======== SHARE ========
+function shareSpot(platform,name){
+  const url=window.location.href;
+  const text=`Check out ${name} in Bicol Region, Philippines! 🌺`;
+  if(platform==='facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,'_blank');
+  else if(platform==='twitter') window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,'_blank');
+  else {navigator.clipboard?.writeText(url);showToast('Link copied! 🔗');}
+}
+
+// ======== HOTELS ========
+function renderHotelFilters(){
+  const bar=document.getElementById('hotel-filter-bar');
+  bar.innerHTML=['All',...new Set(PROVINCES.map(p=>p.name))].map((name,i)=>
+    `<button class="filter-chip ${i===0?'active':''}" onclick="filterHotels('${name}',this)">${name}</button>`
+  ).join('');
+}
+
+function renderHotelGrid(list){
+  const el=document.getElementById('hotel-grid');
+  el.innerHTML=list.map(h=>`
+    <div class="hotel-card" onclick="showHotel('${h.id}')">
+      <div class="hotel-img">${h.emoji}</div>
+      <div class="hotel-info">
+        <h3>${h.name}</h3>
+        <div class="hotel-meta">
+          <span>⭐ ${h.rating}</span>
+          <span>${'★'.repeat(h.stars)}${'☆'.repeat(4-h.stars)}</span>
+          <span>📍 ${PROVINCES.find(p=>p.id===h.province)?.name||h.province}</span>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">${h.desc.substring(0,80)}…</p>
+        <span class="hotel-price">₱${h.price.toLocaleString()}<span style="font-size:13px;font-weight:400;color:var(--muted);">/night</span></span>
+      </div>
+    </div>`).join('');
+}
+
+function filterHotels(province,btn){
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered=province==='All'?HOTELS:HOTELS.filter(h=>PROVINCES.find(p=>p.id===h.province)?.name===province);
+  renderHotelGrid(filtered);
+}
+
+function requestLocation(){
+  navigator.geolocation?.getCurrentPosition(pos=>{
+    userLocation=pos.coords;
+    document.getElementById('hotel-location-prompt').style.display='none';
+    document.getElementById('hotel-list-wrap').style.display='block';
+    const sorted=[...HOTELS].sort((a,b)=>haversine(pos.coords.latitude,pos.coords.longitude,a.lat,a.lng)-haversine(pos.coords.latitude,pos.coords.longitude,b.lat,b.lng));
+    renderHotelGrid(sorted);
+    showToast('Location enabled! Showing nearby hotels 📍');
+  },()=>skipLocation());
+}
+
+function skipLocation(){
+  document.getElementById('hotel-location-prompt').style.display='none';
+  document.getElementById('hotel-list-wrap').style.display='block';
+  renderHotelGrid(HOTELS);
+}
+
+function renderHotelDetail(h){
+  const prov=PROVINCES.find(p=>p.id===h.province);
+  const hotelReviews=reviews['hotel_'+h.id]||[];
+  const reviewsHtml=hotelReviews.length?hotelReviews.slice().reverse().map(r=>`
+    <div class="review-item">
+      <div class="review-header"><span class="reviewer-name">${r.name}</span><span class="stars">${'⭐'.repeat(r.rating)}</span></div>
+      <p class="review-text">${r.comment}</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px;">${r.date}</p>
+    </div>`).join(''):'<p style="color:var(--muted);font-size:14px;">No reviews yet.</p>';
+  return `
+    <div class="detail-hero" style="background:var(--surface2);">
+      <span style="font-size:120px;position:relative;z-index:1">${h.emoji}</span>
+      <div class="detail-hero-overlay"></div>
+      <div class="detail-hero-content">
+        <h1>${h.name}</h1>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <span>⭐ ${h.rating}</span>
+          <span style="color:var(--muted);">${'★'.repeat(h.stars)} ${h.stars}-star</span>
+          <span style="color:var(--muted);">📍 ${prov?.name||h.province}</span>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-strip">${h.images.map((img,i)=>`<div class="gallery-thumb ${i===0?'active':''}">${img}</div>`).join('')}</div>
+    <div class="detail-body">
+      <div class="detail-main">
+        <div class="section-card">
+          <h3>About this Hotel</h3>
+          <p style="font-size:15px;line-height:1.8;color:rgba(232,237,245,.85);">${h.desc}</p>
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+            ${h.amenities.map(a=>`<span class="tag">${a}</span>`).join('')}
+          </div>
+        </div>
+        <div class="section-card">
+          <h3>Guest Reviews (${hotelReviews.length})</h3>
+          ${reviewsHtml}
+          <div class="review-form" style="margin-top:16px;">
+            <h4>Write a Review</h4>
+            <div class="form-row"><label>Your Name</label><input type="text" id="hrev-name" placeholder="Enter your name"/></div>
+            <div class="form-row">
+              <label>Rating</label>
+              <div class="star-select" id="star-select">
+                <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span>
+                <span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span><span onclick="setRating(5)">★</span>
+              </div>
+            </div>
+            <div class="form-row"><label>Comment</label><textarea id="hrev-comment" placeholder="Share your experience…"></textarea></div>
+            <button class="btn btn-primary" onclick="submitHotelReview('${h.id}')">Submit Review</button>
+          </div>
+        </div>
+      </div>
+      <div class="detail-side">
+        <div class="dist-box">
+          <div style="font-size:32px;margin-bottom:8px;">💰</div>
+          <div class="dist-num">₱${h.price.toLocaleString()}</div>
+          <div class="dist-label">per night</div>
+          <a href="https://www.google.com/maps/search/${encodeURIComponent(h.name+' '+prov?.name)}" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;display:flex;text-decoration:none;">🗺️ View on Maps</a>
+        </div>
+        <div class="info-box" style="margin-top:16px;">
+          <div class="info-row"><span>Province</span><span>${prov?.name||h.province}</span></div>
+          <div class="info-row"><span>Stars</span><span>${'★'.repeat(h.stars)}</span></div>
+          <div class="info-row"><span>Rating</span><span>⭐ ${h.rating}</span></div>
+        </div>
+        ${isAdmin?`<button class="btn btn-outline" style="width:100%;justify-content:center;border-color:var(--accent2);color:var(--accent2);" onclick="openEditHotelModal('${h.id}')">✏️ Edit Hotel (Admin)</button>`:''}
+      </div>
+    </div>`;
+}
+
+function submitHotelReview(hotelId){
+  const name=document.getElementById('hrev-name')?.value.trim();
+  const comment=document.getElementById('hrev-comment')?.value.trim();
+  if(!name||!comment||!selectedRating){showToast('Please fill all fields and select a rating.','error');return;}
+  const key='hotel_'+hotelId;
+  if(!reviews[key]) reviews[key]=[];
+  reviews[key].push({name,rating:selectedRating,comment,date:new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'})});
+  localStorage.setItem('bicolReviews',JSON.stringify(reviews));
+  showToast('Hotel review submitted! 🎉');
+  showHotel(hotelId);
+}
+
+// ======== SEARCH ========
+function globalSearch(q){
+  if(!q) return;
+  showPage('provinces');
+  filterProvinces(q);
+}
+
+function heroSearch(q){
+  if(!q) return;
+  showPage('provinces');
+  filterProvinces(q);
+}
+
+// ======== ADMIN ========
+function adminLogin(){
+  const u=document.getElementById('admin-user').value;
+  const p=document.getElementById('admin-pass').value;
+  if(u==='admin'&&p==='bicol2024'){
+    isAdmin=true;
+    document.getElementById('admin-login-wrap').style.display='none';
+    document.getElementById('admin-dashboard').style.display='block';
+    document.getElementById('admin-badge').style.display='inline-block';
+    showToast('Welcome, Admin! 🔐');
+    loadAdminTable(); loadAdminHotels(); loadAdminReviews();
+  } else showToast('Invalid credentials.','error');
+}
+
+function adminLogout(){
+  isAdmin=false;
+  document.getElementById('admin-login-wrap').style.display='block';
+  document.getElementById('admin-dashboard').style.display='none';
+  document.getElementById('admin-badge').style.display='none';
+  document.getElementById('admin-user').value='';
+  document.getElementById('admin-pass').value='';
+  showToast('Logged out.');
+}
+
+function switchAdminTab(tab,btn){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-spots').style.display=tab==='spots'?'block':'none';
+  document.getElementById('admin-hotels').style.display=tab==='hotels'?'block':'none';
+  document.getElementById('admin-reviews').style.display=tab==='reviews'?'block':'none';
+}
+
+function loadAdminTable(){
+  const tbody=document.getElementById('admin-spots-body');
+  if(!tbody) return;
+  tbody.innerHTML=PROVINCES.flatMap(p=>p.spots.map(s=>`
+    <tr>
+      <td>${s.emoji} ${s.name}</td>
+      <td>${p.name}</td>
+      <td><span class="tag">${s.cat}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="openEditSpotModal('${p.id}','${s.id}')">✏️ Edit</button>
+      </td>
+    </tr>`)).join('');
+}
+
+function loadAdminHotels(){
+  const tbody=document.getElementById('admin-hotels-body');
+  if(!tbody) return;
+  tbody.innerHTML=HOTELS.map(h=>`
+    <tr>
+      <td>${h.emoji} ${h.name}</td>
+      <td>${PROVINCES.find(p=>p.id===h.province)?.name||h.province}</td>
+      <td>₱${h.price.toLocaleString()}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openEditHotelModal('${h.id}')">✏️ Edit</button></td>
+    </tr>`).join('');
+}
+
+function loadAdminReviews(){
+  const tbody=document.getElementById('admin-reviews-body');
+  if(!tbody) return;
+  const rows=[];
+  Object.entries(reviews).forEach(([key,revs])=>{
+    revs.forEach((r,i)=>{
+      const spotName=key.startsWith('hotel_')?HOTELS.find(h=>h.id===key.replace('hotel_',''))?.name:
+        PROVINCES.flatMap(p=>p.spots).find(s=>s.id===key)?.name||key;
+      rows.push(`<tr>
+        <td>${r.name}</td><td>${spotName}</td><td>${'⭐'.repeat(r.rating)}</td>
+        <td style="font-size:13px;max-width:200px;">${r.comment.substring(0,60)}…</td>
+        <td><button class="btn btn-outline btn-sm" style="border-color:var(--accent);color:var(--accent);" onclick="deleteReview('${key}',${i})">🗑️</button></td>
+      </tr>`);
+    });
+  });
+  tbody.innerHTML=rows.join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">No reviews yet.</td></tr>';
+}
+
+function deleteReview(key,index){
+  if(reviews[key]){
+    reviews[key].splice(index,1);
+    localStorage.setItem('bicolReviews',JSON.stringify(reviews));
+    loadAdminReviews();
+    showToast('Review deleted.');
+  }
+}
+
+function openEditSpotModal(provId,spotId){
+  let spot=null,prov=null;
+  if(provId&&spotId){
+    prov=PROVINCES.find(p=>p.id===provId);
+    spot=prov?.spots.find(s=>s.id===spotId);
+  }
+  document.getElementById('modal-title').textContent=spot?`Edit: ${spot.name}`:'Add New Spot';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-row"><label>Spot Name</label><input type="text" id="m-name" value="${spot?.name||''}"/></div>
+    <div class="form-row"><label>Province</label>
+      <select id="m-prov" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:var(--font-body);">
+        ${PROVINCES.map(p=>`<option value="${p.id}" ${p.id===provId?'selected':''}>${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row"><label>Category</label><input type="text" id="m-cat" value="${spot?.cat||''}"/></div>
+    <div class="form-row"><label>Description</label><textarea id="m-desc">${spot?.desc||''}</textarea></div>
+    <div class="form-row"><label>Entrance Fee</label><input type="text" id="m-fee" value="${spot?.fee||''}"/></div>
+    <div class="form-row"><label>Insider Tips</label><input type="text" id="m-tips" value="${spot?.tips||''}"/></div>
+    <div class="form-row"><label>Emoji Icon</label><input type="text" id="m-emoji" value="${spot?.emoji||'🏖️'}" style="font-size:24px;"/></div>
+    <div class="form-row">
+      <label>Images (emojis, comma-separated)</label>
+      <input type="text" id="m-imgs" value="${spot?.images?.join(',')||''}"/>
+    </div>
+    <div class="img-upload-area" onclick="document.getElementById('img-file').click()">
+      📁 Click to upload images (preview only in demo)
+      <input type="file" id="img-file" accept="image/*" multiple style="display:none;" onchange="handleImgUpload(this)"/>
+    </div>
+    <div class="uploaded-imgs" id="uploaded-imgs"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveSpot('${provId}','${spotId}')">💾 Save Changes</button>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function openEditHotelModal(hotelId){
+  const hotel=hotelId?HOTELS.find(h=>h.id===hotelId):null;
+  document.getElementById('modal-title').textContent=hotel?`Edit: ${hotel.name}`:'Add New Hotel';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-row"><label>Hotel Name</label><input type="text" id="mh-name" value="${hotel?.name||''}"/></div>
+    <div class="form-row"><label>Province</label>
+      <select id="mh-prov" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:var(--font-body);">
+        ${PROVINCES.map(p=>`<option value="${p.id}" ${p.id===hotel?.province?'selected':''}>${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row"><label>Price per Night (₱)</label><input type="number" id="mh-price" value="${hotel?.price||''}"/></div>
+    <div class="form-row"><label>Stars (1-5)</label><input type="number" id="mh-stars" min="1" max="5" value="${hotel?.stars||3}"/></div>
+    <div class="form-row"><label>Description</label><textarea id="mh-desc">${hotel?.desc||''}</textarea></div>
+    <div class="form-row"><label>Amenities (comma-separated)</label><input type="text" id="mh-amenities" value="${hotel?.amenities?.join(',')||''}"/></div>
+    <div class="form-row"><label>Emoji Icon</label><input type="text" id="mh-emoji" value="${hotel?.emoji||'🏨'}" style="font-size:24px;"/></div>
+    <div class="img-upload-area" onclick="document.getElementById('himg-file').click()">
+      📁 Click to upload hotel images (preview only in demo)
+      <input type="file" id="himg-file" accept="image/*" multiple style="display:none;" onchange="handleImgUpload(this)"/>
+    </div>
+    <div class="uploaded-imgs" id="uploaded-imgs"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveHotel('${hotelId||''}')">💾 Save Hotel</button>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function handleImgUpload(input){
+  const wrap=document.getElementById('uploaded-imgs');
+  wrap.innerHTML='';
+  Array.from(input.files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const div=document.createElement('div');
+      div.className='thumb';
+      div.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"/>
+        <button class="thumb-del" onclick="this.parentNode.remove()">✕</button>`;
+      wrap.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function saveSpot(provId,spotId){
+  const name=document.getElementById('m-name').value;
+  if(!name){showToast('Name is required','error');return;}
+  const prov=PROVINCES.find(p=>p.id===provId);
+  if(prov&&spotId){
+    const spot=prov.spots.find(s=>s.id===spotId);
+    if(spot){
+      spot.name=document.getElementById('m-name').value;
+      spot.cat=document.getElementById('m-cat').value;
+      spot.desc=document.getElementById('m-desc').value;
+      spot.fee=document.getElementById('m-fee').value;
+      spot.tips=document.getElementById('m-tips').value;
+      spot.emoji=document.getElementById('m-emoji').value;
+      spot.images=document.getElementById('m-imgs').value.split(',').map(s=>s.trim());
+    }
+  }
+  closeModal();
+  loadAdminTable();
+  showToast('Spot updated! ✅');
+}
+
+function saveHotel(hotelId){
+  const name=document.getElementById('mh-name').value;
+  if(!name){showToast('Hotel name required','error');return;}
+  if(hotelId){
+    const h=HOTELS.find(h=>h.id===hotelId);
+    if(h){
+      h.name=name;
+      h.province=document.getElementById('mh-prov').value;
+      h.price=parseInt(document.getElementById('mh-price').value)||h.price;
+      h.stars=parseInt(document.getElementById('mh-stars').value)||h.stars;
+      h.desc=document.getElementById('mh-desc').value;
+      h.amenities=document.getElementById('mh-amenities').value.split(',').map(s=>s.trim());
+      h.emoji=document.getElementById('mh-emoji').value;
+    }
+  } else {
+    HOTELS.push({
+      id:'h'+Date.now(),
+      name,province:document.getElementById('mh-prov').value,
+      price:parseInt(document.getElementById('mh-price').value)||2000,
+      stars:parseInt(document.getElementById('mh-stars').value)||3,
+      desc:document.getElementById('mh-desc').value,
+      amenities:document.getElementById('mh-amenities').value.split(',').map(s=>s.trim()),
+      emoji:document.getElementById('mh-emoji').value||'🏨',
+      rating:4.0,lat:13.0,lng:123.5,images:['🏨']
+    });
+  }
+  closeModal();
+  loadAdminHotels();
+  renderHotelGrid(HOTELS);
+  renderHotelFilters();
+  showToast('Hotel saved! ✅');
+}
+
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+
+// ======== THEME ========
+function setTheme(t){
+  currentTheme=t;
+  document.body.classList.toggle('light',t==='light');
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.theme-btn').forEach(b=>{if(b.textContent.includes(t==='dark'?'Dark':'Light'))b.classList.add('active');});
+  localStorage.setItem('bicolTheme',t);
+}
+
+function setAccent(c1,c2){
+  document.documentElement.style.setProperty('--accent',c1);
+  document.documentElement.style.setProperty('--accent2',c2);
+  document.querySelectorAll('.accent-dot').forEach(d=>d.classList.remove('active'));
+  event.target.classList.add('active');
+  localStorage.setItem('bicolAccent',JSON.stringify({c1,c2}));
+}
+
+// ======== SIDEBAR ========
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const main=document.getElementById('main');
+  const tb=document.getElementById('topbar');
+  const ov=document.getElementById('overlay');
+  if(window.innerWidth>768){
+    sb.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+    tb.classList.toggle('expanded');
+  } else {
+    sb.classList.toggle('open');
+    ov.classList.toggle('show');
+  }
+}
+
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ======== TOAST ========
+function showToast(msg,type='success'){
+  const container=document.getElementById('toast');
+  const item=document.createElement('div');
+  item.className=`toast-item ${type==='error'?'error':''}`;
+  item.textContent=msg;
+  container.appendChild(item);
+  setTimeout(()=>item.remove(),3000);
+}
+
+// ======== LOAD SAVED PREFS ========
+function loadPrefs(){
+  const t=localStorage.getItem('bicolTheme');
+  if(t) setTheme(t);
+  const a=localStorage.getItem('bicolAccent');
+  if(a){const{c1,c2}=JSON.parse(a);document.documentElement.style.setProperty('--accent',c1);document.documentElement.style.setProperty('--accent2',c2);}
+}
+
+// ======== START ========
+loadPrefs();
+init();
+</script>
+</body>
+</html>
